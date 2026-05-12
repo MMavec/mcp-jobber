@@ -5,6 +5,16 @@ All notable changes to this project are documented here. Format loosely follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-05-12
+
+### Added
+- `--http` flag (and `MCP_TRANSPORT=http` env) to serve over Streamable HTTP instead
+  of stdio, with `--host` / `--port` (defaults `127.0.0.1` / `8000`, or `$PORT`).
+  Single-tenant — it uses the `JOBBER_*` env credentials; put your own auth in front
+  before exposing it publicly. `Procfile` added for PaaS deploys.
+- `manifest.json` + `scripts/build-mcpb.sh` to package the server as an MCPB bundle
+  (`mcp-jobber.mcpb`) for Claude Desktop one-click install and Smithery upload.
+
 ## [0.1.0] — 2026-05-11
 
 Initial public release.
@@ -35,5 +45,6 @@ Initial public release.
 - `jobber_list_clients` emulates `offset` by over-fetching and slicing rather than
   walking cursors.
 
-[Unreleased]: https://github.com/MMavec/mcp-jobber/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/MMavec/mcp-jobber/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/MMavec/mcp-jobber/releases/tag/v0.2.0
 [0.1.0]: https://github.com/MMavec/mcp-jobber/releases/tag/v0.1.0

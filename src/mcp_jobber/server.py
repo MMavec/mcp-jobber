@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import argparse
+import os
+import sys
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
@@ -209,13 +212,44 @@ def build_server(
     return mcp
 
 
-def main() -> None:
-    import sys
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="mcp-jobber",
+        description="MCP server for the Jobber GraphQL API. Defaults to stdio.",
+    )
+    parser.add_argument(
+        "--http",
+        action="store_true",
+        help="Serve over Streamable HTTP instead of stdio "
+        "(also enabled by env MCP_TRANSPORT=http).",
+    )
+    parser.add_argument(
+        "--host",
+        default=os.environ.get("JOBBER_HTTP_HOST", "127.0.0.1"),
+        help="Bind host when --http (default 127.0.0.1; use 0.0.0.0 in a container).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("JOBBER_HTTP_PORT") or os.environ.get("PORT") or 8000),
+        help="Bind port when --http (default 8000, or $PORT).",
+    )
+    return parser.parse_args(argv)
 
+
+def main(argv: list[str] | None = None) -> None:
+    args = _parse_args(argv)
+    use_http = args.http or os.environ.get("MCP_TRANSPORT", "").lower() in {"http", "streamable-http"}
     try:
         server = build_server()
     except RuntimeError as exc:
         # Most commonly: no credentials configured. MCP clients surface stderr.
         print(f"mcp-jobber: {exc}", file=sys.stderr)
         raise SystemExit(2) from exc
-    server.run()
+    if use_http:
+        # Note: this serves the *single-tenant* server (it uses the JOBBER_*
+        # credentials in the environment) over HTTP. It is not a multi-tenant
+        # gateway; do not expose it publicly without your own auth in front.
+        server.run(transport="http", host=args.host, port=args.port)
+    else:
+        server.run()

@@ -18,3 +18,5 @@ htmlcov/
 .tokens.json
 *.log
 .DS_Store
+build/
+*.mcpb

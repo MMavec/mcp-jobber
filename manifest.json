@@ -1,0 +1,87 @@
+{
+  "manifest_version": "0.3",
+  "name": "mcp-jobber",
+  "display_name": "Jobber (MCP)",
+  "version": "0.2.0",
+  "description": "Read clients, quotes, invoices, and jobs from Jobber, run a global search, and make a couple of safe writes (client tags, quote notes), via the Jobber GraphQL API.",
+  "long_description": "Model Context Protocol server wrapping the Jobber GraphQL API (api.getjobber.com/api/graphql), built with FastMCP. Nine jobber_* tools. OAuth 2 authorization-code auth with transparent refresh, plus a bearer-token fallback. Client-side throttling sized to Jobber's 2500 requests / 5 minutes. See https://github.com/MMavec/mcp-jobber for full docs; run `mcp-jobber-introspect` to confirm schema-specific field/enum names for your Jobber API version.",
+  "author": {
+    "name": "Vic Home Pros",
+    "url": "https://github.com/MMavec/mcp-jobber"
+  },
+  "homepage": "https://github.com/MMavec/mcp-jobber",
+  "documentation": "https://github.com/MMavec/mcp-jobber#readme",
+  "support": "https://github.com/MMavec/mcp-jobber/issues",
+  "license": "MIT",
+  "keywords": ["jobber", "graphql", "crm", "home-services", "fastmcp", "mcp"],
+  "server": {
+    "type": "python",
+    "entry_point": "server/lib/mcp_jobber/__main__.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["-m", "mcp_jobber"],
+      "env": {
+        "PYTHONPATH": "${__dirname}/server/lib",
+        "JOBBER_CLIENT_ID": "${user_config.client_id}",
+        "JOBBER_CLIENT_SECRET": "${user_config.client_secret}",
+        "JOBBER_REFRESH_TOKEN": "${user_config.refresh_token}",
+        "JOBBER_PAT": "${user_config.bearer_token}",
+        "JOBBER_GRAPHQL_VERSION": "${user_config.graphql_version}"
+      }
+    }
+  },
+  "user_config": {
+    "client_id": {
+      "type": "string",
+      "title": "Jobber OAuth Client ID",
+      "description": "From your app in the Jobber Developer Center. Leave blank if using a bearer token.",
+      "required": false
+    },
+    "client_secret": {
+      "type": "string",
+      "title": "Jobber OAuth Client Secret",
+      "description": "From your app in the Jobber Developer Center.",
+      "sensitive": true,
+      "required": false
+    },
+    "refresh_token": {
+      "type": "string",
+      "title": "Jobber OAuth Refresh Token",
+      "description": "Run `mcp-jobber-auth` once to obtain this.",
+      "sensitive": true,
+      "required": false
+    },
+    "bearer_token": {
+      "type": "string",
+      "title": "Jobber bearer access token (fallback)",
+      "description": "Optional. A bearer access token to use as-is with no auto-refresh (Jobber issues no long-lived personal tokens, so this is for quick local use).",
+      "sensitive": true,
+      "required": false
+    },
+    "graphql_version": {
+      "type": "string",
+      "title": "Jobber GraphQL API version",
+      "description": "Sent as X-JOBBER-GRAPHQL-VERSION. Must be an active version date from Jobber's changelog.",
+      "default": "2025-04-16",
+      "required": false
+    }
+  },
+  "tools": [
+    { "name": "jobber_list_clients", "description": "List clients, optionally filtered by tag labels (limit, offset, tags)." },
+    { "name": "jobber_get_client", "description": "Fetch a single client by Jobber ID (emails, phones, tags, timestamps)." },
+    { "name": "jobber_update_client_tags", "description": "Write: replace a client's tag list with the provided labels." },
+    { "name": "jobber_list_quotes", "description": "List quotes filtered by status, client, and/or updatedAfter." },
+    { "name": "jobber_get_quote", "description": "Fetch a quote with line items and notes." },
+    { "name": "jobber_create_note_on_quote", "description": "Write: attach a note to a quote." },
+    { "name": "jobber_list_invoices", "description": "List invoices filtered by client, paid status, and issued-date range." },
+    { "name": "jobber_list_jobs", "description": "List jobs filtered by status and/or completion date." },
+    { "name": "jobber_search", "description": "Global search across clients, jobs, quotes, and invoices (results partitioned by type)." }
+  ],
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  }
+}

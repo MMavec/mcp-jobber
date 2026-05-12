@@ -200,16 +200,36 @@ If `mcp-jobber` is not on the PATH that the desktop app sees, use the absolute p
 
 Restart Claude Desktop after editing the file.
 
-### Smithery
+### Claude Desktop via an `.mcpb` bundle (one-click)
 
-The server is published on [Smithery](https://smithery.ai). To install via the Smithery
-CLI:
+Instead of editing JSON, you can build a bundle and double-click it:
 
 ```bash
-npx -y @smithery/cli install mcp-jobber --client claude
+bash scripts/build-mcpb.sh    # produces ./mcp-jobber.mcpb
 ```
 
-Smithery will prompt for the config values declared in [`smithery.yaml`](smithery.yaml).
+Open `mcp-jobber.mcpb` (Claude Desktop → Settings → Extensions → Install) and it will
+prompt for the `JOBBER_*` values declared in [`manifest.json`](manifest.json). The build
+script bundles the package and its dependencies (MCPB requires deps to be vendored, not
+pip-installed at runtime); it uses the `@anthropic-ai/mcpb` CLI via `npx` if available,
+otherwise plain `zip`. Because some dependencies pull in a compiled extension
+(cffi/cryptography), the resulting bundle is specific to the OS and Python version that
+built it — build it on the machine you'll run it on, or build one bundle per platform.
+
+### Smithery
+
+[Smithery](https://smithery.ai) currently lists servers two ways, both at
+`smithery.ai/new`:
+
+- **Upload the `.mcpb` bundle** built above — this matches what this server is (a stdio
+  server). Recommended.
+- **Bring-your-own-hosting (URL)** — paste the HTTPS URL of an instance you host with the
+  HTTP transport (see [Running over HTTP](#running-over-http-hosted) below); Smithery's
+  gateway proxies to it.
+
+(The [`smithery.yaml`](smithery.yaml) in this repo targets Smithery's older
+GitHub/Dockerfile deploy flow; it is kept for reference but the two paths above are the
+current ones.)
 
 ---
 
@@ -241,6 +261,27 @@ That one can still return a throttle error; when it does, the GraphQL client rai
 cost block from `extensions.cost` is kept on `JobberClient.last_cost` for diagnostics.
 
 ---
+
+## Running over HTTP (hosted)
+
+By default the server speaks stdio (what Claude Desktop / Claude Code expect). To run it
+as a network service using MCP's Streamable HTTP transport:
+
+```bash
+mcp-jobber --http --host 0.0.0.0 --port 8000
+# or, equivalently, via env:
+MCP_TRANSPORT=http JOBBER_HTTP_HOST=0.0.0.0 JOBBER_HTTP_PORT=8000 mcp-jobber
+```
+
+The bundled [`Procfile`](Procfile) (`web: mcp-jobber --http --host 0.0.0.0 --port ${PORT:-8000}`)
+works on most PaaS hosts (Render, Railway, Fly.io, etc.). The MCP endpoint is then at
+`https://<your-host>/mcp` — that's the URL you'd paste into Smithery's "bring your own
+hosting" form.
+
+> ⚠️ This serves the **single-tenant** server: it uses the `JOBBER_*` credentials in its
+> own environment for every request. It is not a multi-tenant gateway and has no built-in
+> request auth. Do not expose it on the public internet without putting your own
+> authentication / network controls in front of it.
 
 ## Verifying the schema
 
