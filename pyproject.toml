@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-jobber"
+version = "0.1.0"
+description = "Model Context Protocol server that wraps the Jobber GraphQL API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Vic Home Pros", email = "dev@vichomepros.com" }
+]
+keywords = ["mcp", "jobber", "graphql", "claude", "anthropic", "home-services"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "fastmcp>=2.3.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "build>=1.2",
+]
+
+[project.scripts]
+mcp-jobber = "mcp_jobber.__main__:main"
+mcp-jobber-auth = "mcp_jobber.oauth_bootstrap:main"
+mcp-jobber-introspect = "mcp_jobber.introspect:main"
+
+[project.urls]
+Homepage = "https://github.com/MMavec/mcp-jobber"
+Issues = "https://github.com/MMavec/mcp-jobber/issues"
+Repository = "https://github.com/MMavec/mcp-jobber"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_jobber"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra -q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]

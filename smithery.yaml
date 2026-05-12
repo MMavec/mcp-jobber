@@ -1,0 +1,42 @@
+# Smithery.ai listing manifest — https://smithery.ai/docs/build/project-config
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    description: >-
+      Provide OAuth credentials (recommended) OR a bearer access token. Run
+      `mcp-jobber-auth` locally once to obtain the OAuth refresh token. Jobber
+      does not issue long-lived personal tokens, so the bearer-token option is
+      best for quick tests only.
+    properties:
+      jobberClientId:
+        type: string
+        title: Jobber OAuth Client ID
+      jobberClientSecret:
+        type: string
+        title: Jobber OAuth Client Secret
+      jobberRefreshToken:
+        type: string
+        title: Jobber OAuth Refresh Token
+      jobberPat:
+        type: string
+        title: Jobber bearer access token (fallback, no auto-refresh)
+      jobberGraphqlVersion:
+        type: string
+        title: Jobber GraphQL API version (X-JOBBER-GRAPHQL-VERSION)
+        default: "2025-04-16"
+    required: []
+  commandFunction: |-
+    (config) => ({
+      command: "mcp-jobber",
+      args: [],
+      env: {
+        JOBBER_CLIENT_ID: config.jobberClientId || "",
+        JOBBER_CLIENT_SECRET: config.jobberClientSecret || "",
+        JOBBER_REFRESH_TOKEN: config.jobberRefreshToken || "",
+        JOBBER_PAT: config.jobberPat || "",
+        JOBBER_GRAPHQL_VERSION: config.jobberGraphqlVersion || "2025-04-16"
+      }
+    })
+build:
+  dockerfile: Dockerfile
